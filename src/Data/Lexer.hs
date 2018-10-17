@@ -48,6 +48,19 @@ hasNewLine s =
     then True
     else False
 
+stripPrefix :: T.Text -> T.Text
+stripPrefix = T.dropWhile (\x -> x /= ' ' && x /= '\n')
+
+getPrefix :: T.Text -> T.Text
+getPrefix = T.takeWhile (\x -> x /= ' ' && x /= '\n')
+
+countSpacesInFront :: T.Text -> Int
+countSpacesInFront "" = 0
+countSpacesInFront s
+  | isAlpha $ T.head s = 0
+  | T.head s == ' ' = 1 + (countSpacesInFront $ T.tail s)
+  | otherwise = countSpacesInFront $ T.tail s
+
 tokenize :: T.Text -> Line -> Column -> [Maybe Token]
 -- tokenize code
 --   | trace ("Code is: " <> (T.unpack code)) False = undefined
@@ -57,12 +70,12 @@ tokenize code line column =
     Just c ->
       case isAlpha c of
         True ->
-          let ident = T.takeWhile (\x -> x /= ' ' && x /= '\n') code
-              rest = T.dropWhile (\x -> x /= ' ' && x /= '\n') code
-              newLine =
+          let ident = getPrefix code
+              rest = stripPrefix code
+              newPos =
                 if hasNewLine rest
-                  then (line + 1, 0)
+                  then (line + 1, countSpacesInFront rest)
                   else (line, column + T.length ident)
            in parseIdent (T.strip ident) line (column + T.length ident) :
-              tokenize (T.strip rest) (fst newLine) (snd newLine)
+              tokenize (T.strip rest) (fst newPos) (snd newPos)
         False -> [Nothing]
