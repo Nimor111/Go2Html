@@ -245,12 +245,12 @@ instance Show TokenOperator where
   show Dot             = "."
 
 data TokenWhitespace
-  = Whitespace Int
+  = Whitespace
   | NewLine
 
 instance Show TokenWhitespace where
-  show (Whitespace x) = show $ T.replicate x $ T.pack " "
-  show NewLine        = "\n"
+  show Whitespace = " "
+  show NewLine    = "\n"
 
 data TokenLiteral
   = Number T.Text

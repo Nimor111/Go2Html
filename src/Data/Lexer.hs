@@ -3,30 +3,13 @@
 module Data.Lexer where
 
 import           Data.Char       (isAlpha, isAlphaNum)
-import           Data.Map.Strict as MapS
+import qualified Data.Map.Strict as MapS
 import           Data.Maps       (keywords, operators, predeclIdentifiers)
 import qualified Data.Text       as T
 import           Data.Token
 import           Data.TokenTypes
+import           Data.Utils
 import           Debug.Trace
-
-safeHead :: T.Text -> Maybe Char
-safeHead s =
-  if s == ""
-    then Nothing
-    else Just $ T.head s
-
-safeTail :: T.Text -> Maybe T.Text
-safeTail s =
-  if s == ""
-    then Nothing
-    else Just $ T.tail s
-
-token :: MapS.Map T.Text TokenType -> T.Text -> Line -> Column -> Maybe Token
-token m ident line column =
-  Just $
-  Token
-    {tokenType = (MapS.!) m ident, lexeme = ident, location = (line, column)}
 
 parseIdent :: T.Text -> Line -> Column -> Maybe Token
 parseIdent ident line column
@@ -41,25 +24,15 @@ parseIdent ident line column
       , location = (line, column)
       }
 
-hasNewLine :: T.Text -> Bool
-hasNewLine "" = False
-hasNewLine s =
-  if T.head s == '\n'
-    then True
-    else False
+parseSingleOperator :: Char -> Line -> Column -> Maybe Token
+parseSingleOperator c line column = singleOp
+  where
+    singleOp = token operators (T.pack [c]) line (column + 1)
 
-stripPrefix :: T.Text -> T.Text
-stripPrefix = T.dropWhile (\x -> x /= ' ' && x /= '\n')
-
-getPrefix :: T.Text -> T.Text
-getPrefix = T.takeWhile (\x -> x /= ' ' && x /= '\n')
-
-countSpacesInFront :: T.Text -> Int
-countSpacesInFront "" = 0
-countSpacesInFront s
-  | isAlpha $ T.head s = 0
-  | T.head s == ' ' = 1 + (countSpacesInFront $ T.tail s)
-  | otherwise = countSpacesInFront $ T.tail s
+parseDoubleOperator :: T.Text -> Line -> Column -> Maybe Token
+parseDoubleOperator op line column = doubleOp
+  where
+    doubleOp = token operators op line (column + 2)
 
 tokenize :: T.Text -> Line -> Column -> [Maybe Token]
 -- tokenize code
@@ -68,7 +41,7 @@ tokenize code line column =
   case safeHead code of
     Nothing -> [Nothing]
     Just c ->
-      case isAlpha c of
+      case isAlpha c || c == '_' of
         True ->
           let ident = getPrefix code
               rest = stripPrefix code
@@ -78,4 +51,32 @@ tokenize code line column =
                   else (line, column + T.length ident)
            in parseIdent (T.strip ident) line (column + T.length ident) :
               tokenize (T.strip rest) (fst newPos) (snd newPos)
-        False -> [Nothing]
+        False ->
+          case T.length code >= 2 &&
+               isTwoPlaceOperator (T.pack ([c] <> [(T.head (T.tail code))])) of
+            True ->
+              parseDoubleOperator
+                (T.pack $ [c] <> [(T.head (T.tail code))])
+                line
+                column :
+              tokenize (T.tail (T.tail code)) line (column + 2)
+            False ->
+              case isOnePlaceOperator c of
+                True ->
+                  parseSingleOperator c line column :
+                  tokenize (T.tail code) line (column + 1)
+                False ->
+                  case isWhitespace c of
+                    True -> tokenize (T.tail code) line (column + 1)
+                    False ->
+                      case isNewLine c of
+                        True -> tokenize (T.tail code) (line + 1) 0
+                        False ->
+                          case isAlphaNum c of
+                            True ->
+                              let num = getDecNumber code
+                                  next = T.drop (T.length num) code
+                               in tokenNumber num line column :
+                                  tokenize next line (column + T.length next)
+                            False ->
+                              [Nothing] <> tokenize (T.tail code) line column
