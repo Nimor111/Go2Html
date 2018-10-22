@@ -27,7 +27,7 @@ parseIdent ident line column
 parseSingleOperator :: Char -> Line -> Column -> Maybe Token
 parseSingleOperator c line column = singleOp
   where
-    singleOp = token operators (T.pack [c]) line (column + 1)
+    singleOp = token operators (T.singleton c) line (column + 1)
 
 parseDoubleOperator :: T.Text -> Line -> Column -> Maybe Token
 parseDoubleOperator op line column = doubleOp
