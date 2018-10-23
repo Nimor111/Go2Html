@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Lexer where
+module Data.Lexer
+  ( tokenize
+  ) where
 
 import           Data.Char       (isAlpha, isAlphaNum)
 import qualified Data.Map.Strict as MapS
@@ -39,7 +41,7 @@ tokenize :: T.Text -> Line -> Column -> [Maybe Token]
 --   | trace ("Code is: " <> (T.unpack code)) False = undefined
 tokenize code line column =
   case safeHead code of
-    Nothing -> [Nothing]
+    Nothing -> []
     Just c ->
       case isAlpha c || c == '_' of
         True ->
@@ -77,6 +79,12 @@ tokenize code line column =
                               let num = getDecNumber code
                                   next = T.drop (T.length num) code
                                in tokenNumber num line column :
-                                  tokenize next line (column + T.length next)
+                                  tokenize next line (column + T.length num)
                             False ->
-                              [Nothing] <> tokenize (T.tail code) line column
+                              case c == '"' of
+                                True ->
+                                  let str = getStringLiteral (T.drop 1 code)
+                                      next = T.drop (T.length str) code
+                                   in tokenStringLiteral str line column :
+                                      tokenize next line (column + T.length str)
+                                False -> tokenize (T.tail code) line column

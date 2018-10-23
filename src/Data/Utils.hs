@@ -37,6 +37,15 @@ tokenNumber num line column =
     , location = (line, column + T.length num)
     }
 
+tokenStringLiteral :: T.Text -> Line -> Column -> Maybe Token
+tokenStringLiteral str line column =
+  Just $
+  Token
+    { tokenType = Literal (StringLiteral str)
+    , lexeme = str
+    , location = (line, column + T.length str)
+    }
+
 hasNewLine :: T.Text -> Bool
 hasNewLine "" = False
 hasNewLine s =
@@ -77,3 +86,6 @@ isTwoPlaceOperator s =
 
 getDecNumber :: T.Text -> T.Text
 getDecNumber code = T.takeWhile isAlphaNum code
+
+getStringLiteral :: T.Text -> T.Text
+getStringLiteral code = "\"" <> T.takeWhile (/= '"') code <> "\""
