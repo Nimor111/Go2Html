@@ -11,7 +11,6 @@ import qualified Data.Text       as T
 import           Data.Token
 import           Data.TokenTypes
 import           Data.Utils
-import           Debug.Trace
 
 parseIdent :: T.Text -> Line -> Column -> Maybe Token
 parseIdent ident line column
