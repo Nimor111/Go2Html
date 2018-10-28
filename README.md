@@ -8,8 +8,15 @@ Install [stack](https://docs.haskellstack.org/en/stable/README/) build tool
 
 Run following commands from root of project:
 
+Building:
+
 ```
-stack build ( might take a long time in the beginning )
+stack build
+```
+
+Executing:
+
+```
 stack exec golangToHtml <file_with_code>
 ```
 
