@@ -247,10 +247,12 @@ instance Show TokenOperator where
 data TokenWhitespace
   = Whitespace
   | NewLine
+  | Tab
 
 instance Show TokenWhitespace where
   show Whitespace = "&nbsp;"
   show NewLine    = "<br>"
+  show Tab        = "&emsp;"
 
 data TokenLiteral
   = Number T.Text
@@ -268,6 +270,14 @@ instance Show TokenLiteral where
   show (RuneLiteral rune)     = show rune
   show (StringLiteral string) = show string
 
+data TokenComment
+  = SingleLine T.Text
+  | MultiLine T.Text
+
+instance Show TokenComment where
+  show (SingleLine t) = "//" <> show t
+  show (MultiLine t)  = "/*" <> show t <> "*/"
+
 data TokenType where
   PredeclIdent :: TokenPredeclIdentifier -> TokenType
   Ident :: TokenIdentifier -> TokenType
@@ -275,4 +285,5 @@ data TokenType where
   Operator :: TokenOperator -> TokenType
   Literal :: TokenLiteral -> TokenType
   Space :: TokenWhitespace -> TokenType
+  Comment :: TokenComment -> TokenType
   deriving (Show)

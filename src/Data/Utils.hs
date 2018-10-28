@@ -53,6 +53,28 @@ tokenSpace str line column
       }
   | str == "\n" =
     Token {tokenType = Space NewLine, lexeme = "<br>", location = (line + 1, 0)}
+  | str == "\t" =
+    Token
+      { tokenType = Space Tab
+      , lexeme = T.replicate 8 "&nbsp;"
+      , location = (line, column + 8)
+      }
+
+tokenSingleComment :: T.Text -> Line -> Column -> Token
+tokenSingleComment str line column =
+  Token
+    { tokenType = Comment (SingleLine str)
+    , lexeme = str
+    , location = (line, column + T.length str)
+    }
+
+tokenMultiComment :: T.Text -> Line -> Column -> Token
+tokenMultiComment str line column =
+  Token
+    { tokenType = Comment (MultiLine str)
+    , lexeme = str
+    , location = (line, column + T.length str)
+    }
 
 hasNewLine :: T.Text -> Bool
 hasNewLine "" = False
@@ -88,12 +110,22 @@ isWhitespace c = [c] == " "
 isNewLine :: Char -> Bool
 isNewLine c = [c] == "\n"
 
+isTab :: Char -> Bool
+isTab c = [c] == "\t"
+
 isTwoPlaceOperator :: T.Text -> Bool
 isTwoPlaceOperator s =
   s `elem` map (T.pack . show) (filter (\x -> (length $ show x) == 2) [Plus ..])
+
+isThreePlaceOperator :: T.Text -> Bool
+isThreePlaceOperator s =
+  s `elem` map (T.pack . show) (filter (\x -> (length $ show x) == 3) [Plus ..])
 
 getDecNumber :: T.Text -> T.Text
 getDecNumber code = T.takeWhile isAlphaNum code
 
 getStringLiteral :: T.Text -> T.Text
 getStringLiteral code = "\"" <> T.takeWhile (/= '"') code <> "\""
+
+getSingleLineComment :: T.Text -> T.Text
+getSingleLineComment = T.takeWhile (/= '\n')

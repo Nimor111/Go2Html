@@ -17,6 +17,7 @@ initialHtml =
     , "<head>"
     , "<style>"
     , ".keyword { color: orange; }"
+    , ".comment { color: grey; }"
     , ".preident { color: red; }"
     , ".operator { color: black; }"
     , ".ident { color: blue; }"
@@ -29,6 +30,8 @@ initialHtml =
 
 toHtml :: Token -> T.Text
 toHtml (Token {tokenType = Space _, lexeme = lex, location = (line, col)}) = lex
+toHtml (Token {tokenType = Comment _, lexeme = lex, location = (line, col)}) =
+  "<span class=comment>" <> lex <> "</span>"
 toHtml (Token {tokenType = Keyword _, lexeme = lex, location = (line, col)}) =
   "<span class=keyword>" <> lex <> "</span>"
 toHtml (Token {tokenType = PredeclIdent _, lexeme = lex, location = (line, col)}) =
