@@ -89,13 +89,6 @@ stripPrefix = T.dropWhile (\x -> x /= ' ' && x /= '\n' && (not $ isOperator x))
 getPrefix :: T.Text -> T.Text
 getPrefix = T.takeWhile (\x -> x /= ' ' && x /= '\n' && (not $ isOperator x))
 
-countSpacesInFront :: T.Text -> Int
-countSpacesInFront "" = 0
-countSpacesInFront s
-  | isAlpha $ T.head s = 0
-  | T.head s == ' ' = 1 + (countSpacesInFront $ T.tail s)
-  | otherwise = countSpacesInFront $ T.tail s
-
 isOperator :: Char -> Bool
 isOperator c = any (== c) (map (T.head . T.pack . show) [Plus ..])
 
