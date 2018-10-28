@@ -7,8 +7,6 @@ module Data.Highlighter
 import qualified Data.Text       as T
 import qualified Data.Text.IO    as TI
 
-import           Data.Maybe      (fromJust)
-
 import           Data.Token
 import           Data.TokenTypes
 
@@ -48,7 +46,6 @@ toHtml (Token { tokenType = Literal (Number _)
               , location = (line, col)
               }) = "<span class=number>" <> lex <> "</span>"
 
-tokensToHtml :: [Maybe Token] -> T.Text
+tokensToHtml :: [Token] -> T.Text
 tokensToHtml tokens =
-  initialHtml <> T.concat (map (toHtml . fromJust) tokens) <>
-  "</body><br></html>"
+  initialHtml <> T.concat (map toHtml tokens) <> "</body><br></html>"

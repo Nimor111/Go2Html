@@ -22,41 +22,36 @@ safeTail s =
     then Nothing
     else Just $ T.tail s
 
-token :: MapS.Map T.Text TokenType -> T.Text -> Line -> Column -> Maybe Token
+token :: MapS.Map T.Text TokenType -> T.Text -> Line -> Column -> Token
 token m ident line column =
-  Just $
   Token
     {tokenType = (MapS.!) m ident, lexeme = ident, location = (line, column)}
 
-tokenNumber :: T.Text -> Line -> Column -> Maybe Token
+tokenNumber :: T.Text -> Line -> Column -> Token
 tokenNumber num line column =
-  Just $
   Token
     { tokenType = Literal (Number num)
     , lexeme = num
     , location = (line, column + T.length num)
     }
 
-tokenStringLiteral :: T.Text -> Line -> Column -> Maybe Token
+tokenStringLiteral :: T.Text -> Line -> Column -> Token
 tokenStringLiteral str line column =
-  Just $
   Token
     { tokenType = Literal (StringLiteral str)
     , lexeme = str
     , location = (line, column + T.length str)
     }
 
-tokenSpace :: T.Text -> Line -> Column -> Maybe Token
+tokenSpace :: T.Text -> Line -> Column -> Token
 tokenSpace str line column
   | str == " " =
-    Just $
     Token
       { tokenType = Space Whitespace
       , lexeme = "&nbsp;"
       , location = (line, column + 1)
       }
   | str == "\n" =
-    Just $
     Token {tokenType = Space NewLine, lexeme = "<br>", location = (line + 1, 0)}
 
 hasNewLine :: T.Text -> Bool
