@@ -28,7 +28,7 @@ library:
   source-dirs: src
 
 executables:
-  highlighter-exe:
+  golangToHtml:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

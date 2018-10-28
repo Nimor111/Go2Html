@@ -249,8 +249,8 @@ data TokenWhitespace
   | NewLine
 
 instance Show TokenWhitespace where
-  show Whitespace = " "
-  show NewLine    = "\n"
+  show Whitespace = "&nbsp;"
+  show NewLine    = "<br>"
 
 data TokenLiteral
   = Number T.Text

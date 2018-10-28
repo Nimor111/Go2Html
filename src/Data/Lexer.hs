@@ -11,6 +11,7 @@ import qualified Data.Text       as T
 import           Data.Token
 import           Data.TokenTypes
 import           Data.Utils
+import           Debug.Trace
 
 parseIdent :: T.Text -> Line -> Column -> Maybe Token
 parseIdent ident line column
@@ -36,8 +37,8 @@ parseDoubleOperator op line column = doubleOp
     doubleOp = token operators op line (column + 2)
 
 tokenize :: T.Text -> Line -> Column -> [Maybe Token]
--- tokenize code
---   | trace ("Code is: " <> (T.unpack code)) False = undefined
+-- tokenize code line column
+--   | trace ("\nCode is: " <> (T.unpack code)) False = undefined
 tokenize code line column =
   case safeHead code of
     Nothing -> []
@@ -46,12 +47,8 @@ tokenize code line column =
         True ->
           let ident = getPrefix code
               rest = stripPrefix code
-              newPos =
-                if hasNewLine rest
-                  then (line + 1, countSpacesInFront rest)
-                  else (line, column + T.length ident)
            in parseIdent (T.strip ident) line (column + T.length ident) :
-              tokenize (T.strip rest) (fst newPos) (snd newPos)
+              tokenize rest line (column + T.length ident - 1)
         False ->
           case T.length code >= 2 &&
                isTwoPlaceOperator (T.pack ([c] <> [(T.head (T.tail code))])) of
@@ -68,10 +65,14 @@ tokenize code line column =
                   tokenize (T.tail code) line (column + 1)
                 False ->
                   case isWhitespace c of
-                    True -> tokenize (T.tail code) line (column + 1)
+                    True ->
+                      tokenSpace " " line column :
+                      tokenize (T.tail code) line (column + 1)
                     False ->
                       case isNewLine c of
-                        True -> tokenize (T.tail code) (line + 1) 0
+                        True ->
+                          tokenSpace "\n" line column :
+                          tokenize (T.tail code) (line + 1) 0
                         False ->
                           case isAlphaNum c of
                             True ->

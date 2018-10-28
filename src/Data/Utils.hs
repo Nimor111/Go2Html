@@ -46,6 +46,19 @@ tokenStringLiteral str line column =
     , location = (line, column + T.length str)
     }
 
+tokenSpace :: T.Text -> Line -> Column -> Maybe Token
+tokenSpace str line column
+  | str == " " =
+    Just $
+    Token
+      { tokenType = Space Whitespace
+      , lexeme = "&nbsp;"
+      , location = (line, column + 1)
+      }
+  | str == "\n" =
+    Just $
+    Token {tokenType = Space NewLine, lexeme = "<br>", location = (line + 1, 0)}
+
 hasNewLine :: T.Text -> Bool
 hasNewLine "" = False
 hasNewLine s =
@@ -75,10 +88,10 @@ isOnePlaceOperator c =
   map (T.head . T.pack . show) (filter (\x -> (length $ show x) == 1) [Plus ..])
 
 isWhitespace :: Char -> Bool
-isWhitespace c = [c] == show Whitespace
+isWhitespace c = [c] == " "
 
 isNewLine :: Char -> Bool
-isNewLine c = [c] == show NewLine
+isNewLine c = [c] == "\n"
 
 isTwoPlaceOperator :: T.Text -> Bool
 isTwoPlaceOperator s =

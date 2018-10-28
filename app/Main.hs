@@ -5,12 +5,12 @@ import           System.Environment (getArgs)
 
 import           Lib                (golangToHtml)
 
-main :: IO String
+main :: IO ()
 main = do
   args <- getArgs
   case args of
-    [] -> return "Usage: ./golangToHtml <filename>"
+    [] -> putStrLn "Usage: ./golangToHtml <file_with_code>"
     _ -> do
       code <- TI.readFile $ args !! 0
       TI.writeFile "source.html" (golangToHtml code)
-      return "Source written."
+      putStrLn "Source written."
